@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>WebGazer Test</title>
+  <script src="https://webgazer.cs.brown.edu/webgazer.js"></script>
+</head>
+<body>
+  <h1>WebGazer Test</h1>
+  <p id="status">Loading...</p>
+  <p id="coords">No gaze data yet</p>
+  <button onclick="startGazer()">Start Tracking</button>
+
+  <script>
+    document.getElementById('status').innerText = 
+      window.webgazer ? 'WebGazer loaded!' : 'WebGazer NOT loaded';
+
+    function startGazer() {
+      try {
+        window.webgazer
+          .setRegression('ridge')
+          .showVideo(true)
+          .showPredictionPoints(true)
+          .setGazeListener(function(data, timestamp) {
+            if (data) {
+              document.getElementById('coords').innerText = 
+                'x: ' + Math.round(data.x) + ' y: ' + Math.round(data.y);
+            }
+          })
+          .begin();
+        document.getElementById('status').innerText = 'Tracking started!';
+      } catch(e) {
+        document.getElementById('status').innerText = 'ERROR: ' + e.message;
+      }
+    }
+  </script>
+</body>
+</html>

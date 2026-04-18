@@ -7,6 +7,10 @@ export interface GazePoint {
   y: number;
   timestamp: number;
 }
+interface GazeData {
+  x: number;
+  y: number;
+}
 
 interface UseGazeTrackerOptions {
   onGaze?: (point: GazePoint) => void;
@@ -53,54 +57,67 @@ export function useGazeTracker(
     }
   }, []);
 
-  const startTracking = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
+const startTracking = useCallback(async () => {
+  setIsLoading(true);
+  setError(null);
 
-    try {
-      // WebGazer must be imported dynamically — it accesses
-      // the browser's window/navigator and cannot run on the server
-      const webgazer = (await import('webgazer')).default;
-      webgazerRef.current = webgazer;
+  try {
+    // Wait for WebGazer to be available on window
+    await new Promise<void>((resolve, reject) => {
+      let attempts = 0;
+      const interval = setInterval(() => {
+        attempts++;
+        if (window.webgazer) {
+          clearInterval(interval);
+          resolve();
+        }
+        if (attempts > 20) {
+          clearInterval(interval);
+          reject(new Error('WebGazer failed to load. Try refreshing the page.'));
+        }
+      }, 500);
+    });
 
-      webgazer
-        .setRegression('ridge')
-        .showVideo(true)          // show camera feed (top-left by default)
-        .showFaceOverlay(true)    // show face mesh overlay
-        .showFaceFeedbackBox(true)// show the green alignment box
-        .showPredictionPoints(true); // show the red dot where gaze is predicted
+    const webgazer = window.webgazer;
+    webgazerRef.current = webgazer;
 
-      webgazer.setGazeListener((data: { x: number; y: number } | null, timestamp: number) => {
-        if (!data || !isMountedRef.current) return;
+    webgazer
+      .setRegression('ridge')
+      .showVideo(true)
+      .showFaceOverlay(true)
+      .showFaceFeedbackBox(true)
+      .showPredictionPoints(true);
 
-        // Throttle updates to avoid flooding React state
-        const now = Date.now();
-        if (now - lastUpdateRef.current < throttleMs) return;
-        lastUpdateRef.current = now;
+    webgazer.setGazeListener((data: GazeData | null, timestamp: number) => {
+      if (!data || !isMountedRef.current) return;
 
-        const point: GazePoint = {
-          x: Math.round(data.x),
-          y: Math.round(data.y),
-          timestamp,
-        };
+      const now = Date.now();
+      if (now - lastUpdateRef.current < throttleMs) return;
+      lastUpdateRef.current = now;
 
-        setCurrentGaze(point);
-        onGaze?.(point);
-      });
+      const point: GazePoint = {
+        x: Math.round(data.x),
+        y: Math.round(data.y),
+        timestamp,
+      };
 
-      await webgazer.begin();
+      setCurrentGaze(point);
+      onGaze?.(point);
+    });
 
-      if (isMountedRef.current) {
-        setIsRunning(true);
-        setIsLoading(false);
-      }
-    } catch (err: any) {
-      if (isMountedRef.current) {
-        setError(err?.message ?? 'Failed to start eye tracking');
-        setIsLoading(false);
-      }
+    await webgazer.begin();
+
+    if (isMountedRef.current) {
+      setIsRunning(true);
+      setIsLoading(false);
     }
-  }, [onGaze, throttleMs]);
+  } catch (err: any) {
+    if (isMountedRef.current) {
+      setError(err?.message ?? 'Failed to start eye tracking');
+      setIsLoading(false);
+    }
+  }
+}, [onGaze, throttleMs]);
 
   // Clean up when the component using this hook unmounts
   useEffect(() => {

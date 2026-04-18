@@ -1,5 +1,5 @@
-import GazeDebugger from '@/components/GazeDebugger';
+import GazeBoard from '@/components/GazeBoard';
 
 export default function Home() {
-  return <GazeDebugger />;
+  return <GazeBoard />;
 }

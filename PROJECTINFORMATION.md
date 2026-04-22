@@ -9,7 +9,9 @@ eye-gaze-board/
 │   ├── WordSuggestions.tsx   # Autocomplete suggestions
 │   ├── TextOutput.tsx        # The sentence being built
 │   └── GazeTracker.tsx       # WebGazer hook/wrapper
-    |____TextDisplay.tsx
+|   |____TextDisplay.tsx
+|   |____SentenceControls.tsx
+|   |____Calibration.tsx
 ├── hooks/
 │   ├── useGazeTracker.ts     # Custom hook for WebGazer
 │   └── useWordPrediction.ts  # Custom hook for Datamuse

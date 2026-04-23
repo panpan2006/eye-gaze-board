@@ -31,7 +31,7 @@ export default function GazeBoard() {
   const scanTimerRef = useRef<NodeJS.Timeout | null>(null);
   const scanIndexRef = useRef(0);
   const webgazerRef = useRef<any>(null);
-  const gazeFilterRef = useRef(new GazeFilter(0.2));
+  const gazeFilterRef = useRef(new GazeFilter(0.1, 5, 18));
   const buttonRefsMap = useRef<Map<string, DOMRect>>(new Map());
   const boardRef = useRef<HTMLDivElement>(null);
   const dwellAnimRef = useRef<number | null>(null);
@@ -212,12 +212,23 @@ const startScanning = useCallback(() => {
     webgazerRef.current = wg;
     try {
       updateButtonRects();
-      wg.setGazeListener((data: any) => {
+    wg.setGazeListener((data: any) => {
   if (!data) return;
   const f = gazeFilterRef.current.filter(data.x, data.y);
   setGazePoint({ x: f.x, y: f.y });
   const btn = getButtonAtCoords(f.x, f.y);
-  if (btn !== currentGazedRef.current) { stopDwellRef.current(); if (btn) startDwellRef.current(btn); }
+
+  // If currently dwelling on a button, require gaze to fully
+  // leave that button before switching — prevents jitter cancelling dwell
+  if (currentGazedRef.current && btn === null) {
+    // Gaze left a button entirely — cancel dwell
+    stopDwellRef.current();
+  } else if (btn !== null && btn !== currentGazedRef.current) {
+    // Gaze moved to a different button
+    stopDwellRef.current();
+    startDwellRef.current(btn);
+  }
+  // If btn === currentGazedRef.current, do nothing — keep dwelling
 });
       const isReady = wg.isReady ? wg.isReady() : false;
       if (!isReady) await wg.begin();

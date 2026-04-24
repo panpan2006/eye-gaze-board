@@ -92,23 +92,32 @@ export default function GazeBoard() {
 
   // ── Speak ─────────────────────────────────────────────────────────────────
 
-  const handleSpeak = useCallback(async () => {
-    const fullText = sentenceRef.current.trim();
-    if (!fullText) return;
-    setIsSpeaking(true);
-    stopScanning();
-    try {
-      await speak(fullText, { rate: 0.85, pitch: 1, volume: 1 });
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsSpeaking(false);
-      setSentence('');
-      setCurrentWord('');
-      // Restart scanning after speaking
-      startScanFrom(0);
-    }
-  }, [stopScanning, startScanFrom]);
+const handleSpeak = useCallback(async () => {
+  const fullText = sentenceRef.current.trim();
+  if (!fullText) return;
+  setIsSpeaking(true);
+  stopScanning();
+
+  try {
+    const res = await fetch('/api/expand', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ keywords: fullText }),
+    });
+    const { sentence } = await res.json();
+    const textToSpeak = sentence ?? fullText;
+
+    await speak(textToSpeak, { rate: 0.85, pitch: 1, volume: 1 });
+  } catch (e) {
+    console.error(e);
+    await speak(fullText, { rate: 0.85, pitch: 1, volume: 1 });
+  } finally {
+    setIsSpeaking(false);
+    setSentence('');
+    setCurrentWord('');
+    startScanFrom(0);
+  }
+}, [stopScanning, startScanFrom]);
 
   // ── Action handler — called by head tilt gestures ─────────────────────────
 

@@ -39,3 +39,25 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+venv/
+__pycache__/
+*.pyc
+aac-t5-checkpoints/
+.cache/
+runs/
+
+# ML artifacts
+aac-t5-final/
+aac-t5-checkpoints/
+*.safetensors
+tokenizer.json
+optimizer.pt
+scheduler.pt
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Hugging Face cache
+.cache/

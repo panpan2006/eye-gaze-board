@@ -15,6 +15,7 @@ eye-gaze-board/
 ├── hooks/
 │   ├── useGazeTracker.ts     # Custom hook for WebGazer
 │   └── useWordPrediction.ts  # Custom hook for Datamuse
+|   |___useFaceOrientation.ts
 ├── lib/
 │   └── tts.ts                # Text-to-speech utility
 └── types/
@@ -34,3 +35,6 @@ Phases:
 7. TTS confirmation 
 8. Calibration screen
 9. Train an ML model to strengthen word predictions - should also follow gaze
+
+New Set-up: 
+ML model to piece together key words into a sentence

@@ -7,7 +7,7 @@ import { useFaceOrientation } from '@/hooks/useFaceOrientation';
 const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 const NUMBERS  = '1234567890'.split('');
 const ALL_SYMBOLS = [...LETTERS, ...NUMBERS];
-const SCAN_INTERVAL = 1500; // ms per letter advance
+const SCAN_INTERVAL = 1000; // ms per letter advance
 
 // ─── Tilt indicator icons ─────────────────────────────────────────────────────
 
